@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090909">
+<title>Guuh Barber — Agendamento</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#090909;
+  color:#fff;
+  font-family:Arial,sans-serif
+}
+.wrap{
+  max-width:560px;
+  margin:auto;
+  padding:18px 16px 60px
+}
+header{
+  position:relative;
+  text-align:center;
+  padding:18px 0 10px
+}
+h1{
+  margin:0;
+  font-size:32px;
+  letter-spacing:2px
+}
+.muted{color:#999}
+.menu{
+  position:absolute;
+  left:0;
+  top:14px;
+  width:46px;
+  height:46px;
+  border:1px solid #333;
+  border-radius:12px;
+  background:#171717;
+  color:#fff;
+  font-size:25px
+}
+.card{
+  background:#151515;
+  border:1px solid #292929;
+  border-radius:18px;
+  padding:18px;
+  margin:14px 0
+}
+h2{margin-top:0}
+.service{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#222;
+  padding:14px;
+  margin:9px 0;
+  border-radius:13px;
+  cursor:pointer
+}
+.service input{
+  width:22px;
+  height:22px
+}
+.serviceText{flex:1}
+.price{font-weight:bold}
+input,select{
+  width:100%;
+  padding:14px;
+  border-radius:11px;
+  border:1px solid #333;
+  background:#202020;
+  color:#fff;
+  margin:6px 0 12px;
+  font-size:16px
+}
+button.main{
+  width:100%;
+  padding:15px;
+  border:0;
+  border-radius:12px;
+  background:#fff;
+  color:#000;
+  font-size:17px;
+  font-weight:bold
+}
+.summary{
+  padding:13px;
+  border-radius:12px;
+  background:#202020;
+  margin:12px 0;
+  line-height:1.7
+}
+.notice{
+  padding:12px;
+  border-radius:12px;
+  background:#262626;
+  margin:10px 0;
+  display:none
+}
+.drawer{
+  position:fixed;
+  left:-100%;
+  top:0;
+  bottom:0;
+  width:88%;
+  max-width:390px;
+  background:#111;
+  z-index:20;
+  padding:22px;
+  transition:.25s;
+  overflow:auto;
+  border-right:1px solid #333
+}
+.drawer.open{left:0}
+.overlay{
+  position:fixed;
+  inset:0;
+  background:#000a;
+  z-index:19;
+  display:none
+}
+.overlay.open{display:block}
+.close{
+  float:right;
+  border:0;
+  background:#222;
+  color:#fff;
+  border-radius:10px;
+  font-size:20px;
+  padding:8px 12px
+}
+.booking{
+  background:#202020;
+  border-radius:12px;
+  padding:13px;
+  margin:10px 0;
+  line-height:1.5
+}
+.booking button{
+  margin-top:8px;
+  padding:9px 12px;
+  border:0;
+  border-radius:9px
+}
+.ok{color:#9cff9c}
+.error{color:#ff9898}
+</style>
+</head>
+
+<body>
+
+<div class="overlay" id="overlay" onclick="closeAdmin()"></div>
+
+<div class="drawer" id="drawer">
+  <button class="close" onclick="closeAdmin()">✕</button>
+  <h2>Administrador</h2>
+  <p class="muted">Guuh Barber</p>
+
+  <div id="loginAdmin">
+    <input id="adminPin" type="password" placeholder="Senha do administrador">
+    <button class="main" onclick="adminLogin()">Entrar</button>
+  </div>
+
+  <div id="adminArea" style="display:none">
+    <h3>Agendamentos</h3>
+    <div id="adminBookings"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header>
+  <button class="menu" onclick="openAdmin()">☰</button>
+  <h1>GUUH BARBER</h1>
+  <p class="muted">Agende seu horário</p>
+</header>
+
+<div class="card">
+  <h2>1. Escolha os serviços</h2>
+
+  <label class="service">
+    <input type="checkbox" class="svc"
+      data-name="Corte de cabelo"
+      data-price="20"
+      data-minutes="40">
+    <div class="serviceText">
+      <b>Corte de cabelo</b><br>
+      <small class="muted">40 minutos</small>
+    </div>
+    <span class="price">R$20</span>
+  </label>
+
+  <label class="service">
+    <input type="checkbox" class="svc"
+      data-name="Barba"
+      data-price="10"
+      data-minutes="20">
+    <div class="serviceText">
+      <b>Barba</b><br>
+      <small class="muted">20 minutos</small>
+    </div>
+    <span class="price">R$10</span>
+  </label>
+
+  <label class="service">
+    <input type="checkbox" class="svc"
+      data-name="Luzes + Corte"
+      data-price="85"
+      data-minutes="90">
+    <div class="serviceText">
+      <b>Luzes + Corte</b><br>
+      <small class="muted">1h30</small>
+    </div>
+    <span class="price">R$85</span>
+  </label>
+
+  <label class="service">
+    <input type="checkbox" class="svc"
+      data-name="Nevou + Corte"
+      data-price="100"
+      data-minutes="120">
+    <div class="serviceText">
+      <b>Nevou + Corte</b><br>
+      <small class="muted">2 horas</small>
+    </div>
+    <span class="price">R$100</span>
+  </label>
+
+  <div class="summary" id="serviceSummary">
+    Selecione pelo menos um serviço.
+  </div>
+</div>
+
+<div class="card">
+  <h2>2. Seus dados</h2>
+
+  <input id="name" placeholder="Seu nome">
+  <input id="phone" type="tel" placeholder="WhatsApp com DDD">
+</div>
+
+<div class="card">
+  <h2>3. Escolha o dia</h2>
+
+  <input id="date" type="date">
+
+  <label>Horário</label>
+  <select id="time">
+    <option value="">Escolha primeiro a data</option>
+  </select>
+
+  <p class="muted">
+    Cada cliente pode ter somente 1 agendamento futuro.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Confirmar</h2>
+
+  <div class="summary" id="finalSummary">
+    Escolha os serviços, data e horário.
+  </div>
+
+  <div class="notice" id="notice"></div>
+
+  <button class="main" onclick="book()">Confirmar agendamento</button>
+</div>
+
+</div>
+
+<script>
+const ADMIN_PASSWORD = "1234";
+const MAX_DAYS = 30;
+
+const services = [...document.querySelectorAll(".svc")];
+const dateInput = document.getElementById("date");
+const timeSelect = document.getElementById("time");
+
+function normalizePhone(v){
+  return v.replace(/\D/g,"");
+}
+
+function money(v){
+  return "R$ " + v.toFixed(2).replace(".",",");
+}
+
+function getSelectedServices(){
+  return services
+    .filter(x => x.checked)
+    .map(x => ({
+      name:x.dataset.name,
+      price:Number(x.dataset.price),
+      minutes:Number(x.dataset.minutes)
+    }));
+}
+
+function totals(){
+  const selected = getSelectedServices();
+
+  return {
+    price:selected.reduce((a,b)=>a+b.price,0),
+    minutes:selected.reduce((a,b)=>a+b.minutes,0)
+  };
+}
+
+function minutesText(m){
+  if(m < 60) return m+" min";
+  const h = Math.floor(m/60);
+  const rest = m%60;
+  return rest ? h+"h "+rest+"min" : h+"h";
+}
+
+function updateSummary(){
+  const selected = getSelectedServices();
+  const total = totals();
+
+  if(!selected.length){
+    document.getElementById("serviceSummary").innerHTML =
+      "Selecione pelo menos um serviço.";
+  }else{
+    document.getElementById("serviceSummary").innerHTML =
+      "<b>"+selected.map(x=>x.name).join(" + ")+"</b><br>"+
+      "Tempo: "+minutesText(total.minutes)+"<br>"+
+      "Total: "+money(total.price);
+  }
+
+  updateFinal();
+  loadTimes();
+}
+
+services.forEach(x => x.addEventListener("change",updateSummary));
+
+function getBookings(){
+  return JSON.parse(localStorage.getItem("guuhBookings") || "[]");
+}
+
+function saveBookings(v){
+  localStorage.setItem("guuhBookings",JSON.stringify(v));
+}
+
+function parseLocal(date,time){
+  return new Date(date+"T"+time+":00");
+}
+
+function isDayAvailable(dateString){
+  const d = new Date(dateString+"T12:00:00");
+
+  if(d.getDay() === 0) return false;
+
+  const reference = new Date("2026-08-30T12:00:00");
+  const diff = Math.floor((d-reference)/86400000);
+
+  // 30/08 = dia de trabalho
+  // 31/08 = folga
+  return Math.abs(diff)%2 === 1;
+}
+
+function setDateLimits(){
+  const now = new Date();
+  const max = new Date();
+  max.setDate(now.getDate()+MAX_DAYS);
+
+  dateInput.min = localDate(now);
+  dateInput.max = localDate(max);
+}
+
+function localDate(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+
+function toMinutes(t){
+  const [h,m]=t.split(":").map(Number);
+  return h*60+m;
+}
+
+function fromMinutes(v){
+  return String(Math.floor(v/60)).padStart(2,"0")+":"+
+         String(v%60).padStart(2,"0");
+}
+
+function overlaps(start,end,b){
+  const bs=toMinutes(b.time);
+  const be=bs+b.duration;
+  return start < be && end > bs;
+}
+
+function loadTimes(){
+  const date = dateInput.value;
+  const duration = totals().minutes;
+
+  timeSelect.innerHTML="";
+
+  if(!date){
+    timeSelect.innerHTML='<option value="">Escolha primeiro a data</option>';
+    return;
+  }
+
+  if(!isDayAvailable(date)){
+    timeSelect.innerHTML='<option value="">Dia indisponível</option>';
+    return;
+  }
+
+  if(!duration){
+    timeSelect.innerHTML='<option value="">Escolha os serviços</option>';
+    return;
+  }
+
+  const bookings = getBookings().filter(b=>b.date===date);
+
+  const openings=[];
+
+  for(let start=8*60; start<=19*60+30; start+=30){
+    const end=start+duration;
+
+    const hitsLunch =
+      start < 14*60+30 &&
+      end > 13*60;
+
+    const afterClose=end > 19*60+30;
+
+    if(hitsLunch || afterClose) continue;
+
+    const time=fromMinutes(start);
+    const appointment=parseLocal(date,time);
+
+    if(appointment <= new Date()) continue;
+
+    const collision=bookings.some(b =>
+      overlaps(start,end,b)
+    );
+
+    if(!collision) openings.push(time);
+  }
+
+  if(!openings.length){
+    timeSelect.innerHTML='<option value="">Sem horários disponíveis</option>';
+    return;
+  }
+
+  timeSelect.innerHTML =
+    '<option value="">Selecione</option>'+
+    openings.map(t=>`<option value="${t}">${t}</option>`).join("");
+}
+
+dateInput.addEventListener("change",()=>{
+  loadTimes();
+  updateFinal();
+});
+
+timeSelect.addEventListener("change",updateFinal);
+
+document.getElementById("name").addEventListener("input",updateFinal);
+document.getElementById("phone").addEventListener("input",updateFinal);
+
+function updateFinal(){
+  const selected=getSelectedServices();
+  const total=totals();
+  const date=dateInput.value;
+  const time=timeSelect.value;
+
+  if(!selected.length || !date || !time){
+    document.getElementById("finalSummary").innerHTML =
+      "Escolha os serviços, data e horário.";
+    return;
+  }
+
+  document.getElementById("finalSummary").innerHTML =
+    "<b>"+selected.map(x=>x.name).join(" + ")+"</b><br>"+
+    "📅 "+date.split("-").reverse().join("/")+" às "+time+"<br>"+
+    "⏱ "+minutesText(total.minutes)+"<br>"+
+    "💰 "+money(total.price);
+}
+
+function activeBookingFor(phone){
+  const now=new Date();
+
+  return getBookings().find(b =>
+    b.phone===phone &&
+    parseLocal(b.date,b.time) > now
+  );
+}
+
+function showNotice(text,error=false){
+  const el=document.getElementById("notice");
+  el.style.display="block";
+  el.className="notice "+(error?"error":"ok");
+  el.innerHTML=text;
+}
+
+function book(){
+  const name=document.getElementById("name").value.trim();
+  const phone=normalizePhone(document.getElementById("phone").value);
+  const selected=getSelectedServices();
+  const total=totals();
+  const date=dateInput.value;
+  const time=timeSelect.value;
+
+  if(!name){
+    showNotice("Digite seu nome.",true);
+    return;
+  }
+
+  if(phone.length < 10){
+    showNotice("Digite um WhatsApp válido com DDD.",true);
+    return;
+  }
+
+  if(!selected.length){
+    showNotice("Escolha pelo menos um serviço.",true);
+    return;
+  }
+
+  if(!date || !time){
+    showNotice("Escolha a data e o horário.",true);
+    return;
+  }
+
+  const active=activeBookingFor(phone);
+
+  if(active){
+    showNotice(
+      "Você já possui um agendamento ativo para "+
+      active.date.split("-").reverse().join("/")+
+      " às "+active.time+
+      ". Depois que esse horário passar, você poderá agendar novamente.",
+      true
+    );
+    return;
+  }
+
+  let bookings=getBookings();
+
+  const start=toMinutes(time);
+  const end=start+total.minutes;
+
+  if(bookings.some(b =>
+      b.date===date &&
+      overlaps(start,end,b)
+  )){
+    showNotice("Esse horário acabou de ser ocupado. Escolha outro.",true);
+    loadTimes();
+    return;
+  }
+
+  bookings.push({
+    id:Date.now(),
+    name,
+    phone,
+    date,
+    time,
+    duration:total.minutes,
+    price:total.price,
+    services:selected.map(x=>x.name)
+  });
+
+  saveBookings(bookings);
+
+  showNotice(
+    "✅ Agendamento confirmado!<br><br>"+
+    "<b>"+selected.map(x=>x.name).join(" + ")+"</b><br>"+
+    date.split("-").reverse().join("/")+
+    " às "+time
+  );
+
+  loadTimes();
+}
+
+function openAdmin(){
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("overlay").classList.add("open");
+}
+
+function closeAdmin(){
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("overlay").classList.remove("open");
+}
+
+function adminLogin(){
+  const pin=document.getElementById("adminPin").value;
+
+  if(pin !== ADMIN_PASSWORD){
+    alert("Senha incorreta");
+    return;
+  }
+
+  document.getElementById("loginAdmin").style.display="none";
+  document.getElementById("adminArea").style.display="block";
+  renderAdmin();
+}
+
+function renderAdmin(){
+  const box=document.getElementById("adminBookings");
+
+  const bookings=getBookings().sort((a,b)=>
+    parseLocal(a.date,a.time)-parseLocal(b.date,b.time)
+  );
+
+  if(!bookings.length){
+    box.innerHTML='<p class="muted">Nenhum agendamento.</p>';
+    return;
+  }
+
+  box.innerHTML=bookings.map(b=>`
+    <div class="booking">
+      <b>${b.name}</b><br>
+      📱 ${b.phone}<br>
+      ✂️ ${b.services.join(" + ")}<br>
+      📅 ${b.date.split("-").reverse().join("/")} às ${b.time}<br>
+      ⏱ ${minutesText(b.duration)}<br>
+      💰 ${money(b.price)}
+      <br>
+      <button onclick="removeBooking(${b.id})">Cancelar horário</button>
+    </div>
+  `).join("");
+}
+
+function removeBooking(id){
+  if(!confirm("Cancelar este agendamento?")) return;
+
+  saveBookings(
+    getBookings().filter(x=>x.id!==id)
+  );
+
+  renderAdmin();
+  loadTimes();
+}
+
+setDateLimits();
+updateSummary();
+</script>
+
+</body>
+</html>
